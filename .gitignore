@@ -1,3 +1,9 @@
+*local*
+*temp*
+
+build
+.gradle
+
 # Compiled class file
 *.class
 
