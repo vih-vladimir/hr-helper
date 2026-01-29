@@ -1,0 +1,45 @@
+name: hr-helper
+
+services:
+  app:
+    container_name: hr-helper-app
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        - JAR_FILE=build/libs/*.jar
+    env_file:
+      - ./.local.env
+    ports:
+      - 8080:8080
+    depends_on:
+      - pg-hr-helper
+
+  pg-hr-helper:
+    container_name: pg-hr-helper
+    image: postgres:14.11
+    environment:
+      POSTGRES_DB: hr-helper-local
+      POSTGRES_USER: hr-helper-local
+      POSTGRES_PASSWORD: pass
+      PGPORT: 6432
+      PGDATA: '/var/lib/postgresql/data/pgdata'
+    volumes:
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./.temp/pg-hr-helper:/var/lib/postgresql/data
+    ports:
+      - '8765:6432'
+    healthcheck:
+      test:
+        [
+          'CMD-SHELL',
+          'pg_isready -U hr-helper-local -d hr-helper-local',
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
+
+volumes:
+  pg-hr-helper:
